@@ -1,0 +1,1 @@
+src:/Users/earther/.m2/repository/com/github/seancorfield/honeysql/2.3.928/honeysql-2.3.928.jar:/Users/earther/.m2/repository/org/clojure/clojure/1.11.1/clojure-1.11.1.jar:/Users/earther/.m2/repository/org/clojure/core.specs.alpha/0.2.62/core.specs.alpha-0.2.62.jar:/Users/earther/.m2/repository/org/clojure/spec.alpha/0.3.218/spec.alpha-0.3.218.jar

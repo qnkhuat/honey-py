@@ -18,33 +18,43 @@ CLAUSE_ORDER = [
     "_:with_:data"
     ]
 
-def tolist(x):
+#------------------------------------ Utilities ------------------------------------#
+
+def ensure_list(x):
   return x if isinstance(x, list) else [x]
 
-def is_keyword(s):
+def iskeyword(s):
   """A keyword is as tring with prefix `:`.
   I.e: ":user" is a keyword, but "user" is not a keyword
   """
   return isinstance(s, str) and s.startswith(":")
 
-def kw_to_str(kw):
-  assert is_keyword(kw), f"not a keyword {kw}"
+def kw2str(kw):
+  assert iskeyword(kw), f"not a keyword {kw}"
   return kw[1:]
 
-dialect = "ANSI"
-#formatter = Ansi()
-prefix = "\""
-
-def format_select(k, xs):
-  xs = tolist(xs)
-  print("XS:", xs)
-  return [f"{kw_to_str(k)} {','.join(map(kw_to_str, xs))}", []]
-
-def format_from(k, xs):
-  if isinstance(xs, dict):
-    return format(xs, nested=True)
+def quote(x, quotestyle="\""):
+  if x == "*":
+    return x
   else:
-    return [f"{kw_to_str(k)} {kw_to_str(xs)}", []]
+    return f"{quotestyle}{x}{quotestyle}"
+
+#------------------------------------ Formatter ------------------------------------#
+
+def format_identifiers(kws):
+  kws = ensure_list(kws)
+  kws = map(kw2str, kws)
+  return ", ".join(map(quote, kws))
+
+def format_select(k, kws):
+  kws = ensure_list(kws)
+  return [f"{kw2str(k)} {format_identifiers(kws)}", []]
+
+def format_from(k, kws):
+  if isinstance(kws, dict):
+    return format(kws, nested=True)
+  else:
+    return [f"{kw2str(k)} {format_identifiers(kws)}", []]
 
 FORMATTER = {
     ":select": format_select,
@@ -69,3 +79,8 @@ def format(honey_sql_clause, nested=False):
   if nested:
     sql = f"({sql})"
   return [sql, params]
+
+format(
+      {":select" : [":*"] ,
+       ":from" : [":table"] ,
+       })

@@ -39,6 +39,17 @@ def quote(x, quotestyle="\""):
   else:
     return f"{quotestyle}{x}{quotestyle}"
 
+class Param:
+  def __init__(self, value):
+    super().__init__()
+    self.value = value
+
+def param(value):
+  return Param(value)
+
+def isParam(x):
+  return isinstance(x, Param)
+
 #------------------------------------ Formatter ------------------------------------#
 
 def format_identifiers(kws):

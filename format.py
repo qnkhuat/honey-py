@@ -1,37 +1,27 @@
 import copy
 
 CLAUSE_ORDER = [
-    "_:raw", "_:nest", "_:with", "_:with_:recursive", "_:intersect", "_:union", "_:union_:all", "_:except", "_:except_:all",
-    "_:table",
-    ":select", "_:select_:distinct", "_:select_:distinct_:on", "_:select_:top", "_:select_:distinct_:top",
-    "_:into", "_:bulk_:collect_:into",
-    "_:insert_:into", "_:update", "_:delete", "_:delete_:from", "_:truncate",
-    "_:columns", "_:set", ":from", "_:using",
-    "_:join_:by",
-    "_:join", "_:left_:join", "_:right_:join", "_:inner_:join", "_:outer_:join", "_:full_:join",
-    "_:cross_:join",
-    "_:where", "_:group_:by", "_:having",
-    "_:window", "_:partition_:by",
-    "_:order_:by", "_:limit", "_:offset", "_:fetch", "_:for", "_:lock", "_:values",
-    "_:on_:conflict", "_:on_:constraint", "_:do_:nothing", "_:do_:update_:set", "_:on_:duplicate_:key_:update",
-    "_:returning",
-    "_:with_:data"
+    "_raw", "_nest", "_with", "_with_recursive", "_intersect", "_union", "_union_all", "_except", "_except_all",
+    "_table",
+    "select", "_select_distinct", "_select_distinct_on", "_select_top", "_select_distinct_top",
+    "_into", "_bulk_collect_into",
+    "_insert_into", "_update", "_delete", "_delete_from", "_truncate",
+    "_columns", "_set", "from", "_using",
+    "_join_by",
+    "_join", "_left_join", "_right_join", "_inner_join", "_outer_join", "_full_join",
+    "_cross_join",
+    "_where", "_group_by", "_having",
+    "_window", "_partition_by",
+    "_order_by", "_limit", "_offset", "_fetch", "_for", "_lock", "_values",
+    "_on_conflict", "_on_constraint", "_do_nothing", "_do_update_set", "_on_duplicate_key_update",
+    "_returning",
+    "_with_data"
     ]
 
 #------------------------------------ Utilities ------------------------------------#
 
 def ensure_list(x):
   return x if isinstance(x, list) else [x]
-
-def iskeyword(s):
-  """A keyword is as tring with prefix `:`.
-  I.e: ":user" is a keyword, but "user" is not a keyword
-  """
-  return isinstance(s, str) and s.startswith(":")
-
-def kw2str(kw):
-  assert iskeyword(kw), f"not a keyword {kw}"
-  return kw[1:]
 
 def quote(x, quotestyle="\""):
   if x == "*":
@@ -52,24 +42,33 @@ def isParam(x):
 
 #------------------------------------ Formatter ------------------------------------#
 
-def format_identifiers(kws):
-  kws = ensure_list(kws)
-  kws = map(kw2str, kws)
-  return ", ".join(map(quote, kws))
+def format_identifiers(ids):
+  ids = ensure_list(ids)
+  sqls = []
+  params = []
+  for id_ in ids:
+    if isParam(id_):
+      sqls.append("?")
+      params.append(id_.value)
+    else:
+      sqls.append(id_)
+  return [", ".join(sqls), params]
 
-def format_select(k, kws):
-  kws = ensure_list(kws)
-  return [f"{kw2str(k)} {format_identifiers(kws)}", []]
+def format_select(k, xs):
+  xs = ensure_list(xs)
+  [sql, params] = format_identifiers(xs)
+  return [f"{k} {sql}", params]
 
 def format_from(k, kws):
   if isinstance(kws, dict):
     return format(kws, nested=True)
   else:
-    return [f"{kw2str(k)} {format_identifiers(kws)}", []]
+    [sql, params] = format_identifiers(kws)
+    return [f"{k} {sql}", params]
 
 FORMATTER = {
-    ":select": format_select,
-    ":from": format_from,
+    "select": format_select,
+    "from": format_from,
     }
 
 def format(honey_sql_clause, nested=False):
@@ -92,6 +91,6 @@ def format(honey_sql_clause, nested=False):
   return [sql, params]
 
 format(
-      {":select" : [":*"] ,
-       ":from" : [":table"] ,
+      {"select" : ["*"],
+       "from" : ["table"],
        })
